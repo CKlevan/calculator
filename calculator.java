@@ -1,82 +1,124 @@
+/**
+ * Corey Klevan
+ * December 2nd, 2021
+ */
 import java.util.*;
 public class calculator
 {
-    /**
-     *Defines the operators and their class numbers
-     */
-    public static String output;// Makes it so I don't need to use an arraylist
-     static int operator(char ch)
+    private static int priority(char c) 
     {
-        switch (ch)
+        // Gives operators a priority number 
+        switch(c)
         {
-        case '+':
-        case '-':
-            return 1;
-      
-        case '*':
-        case '/':
-            return 2;
-      
-        case '^':
-            return 3;
-        }
+            case '+':
+            case '-':
+                return 1;
+            
+            case '*':
+            case '/':
+                return 2;
+            
+            case '^':
+                return 3;
+        }// End Switch
         return -1;
-    }
-
-    static String position(String output)// runs through the output
+    }// End priority
+    public static ArrayList<String> before(String input)
     {
-        String result = new String("");
-        // Intializes a stack    
+        ArrayList<String> result = new ArrayList<>(); // Starts an Empty String
         Stack<Character> stack = new Stack<>();
-        for(int i = 0; i < output.length(); ++i)
+        for(int i = 0; i < input.length(); i++)
         {
-            char c = output.charAt(i);
-
-            // Checks to see if the character is a number
-            if(Character.isDigit(c))
+            char c = input.charAt(i);
+            String acc = "";
+            while(Character.isLetterOrDigit(c))
             {
-                result += c;
-            }// End first if
-
-            else if(c == '(' )
+                acc = acc + c;
+                if (i + 1 >= input.length()) 
+                {
+                    break;
+                }// End if
+                c = input.charAt(++i);
+            }// End while
+            if(!acc.isEmpty())
+            {
+                result.add(acc);
+            }// End if
+            if(c == '(')
             {
                 stack.push(c);
-            }// End else if 1
-
+            }// End if
             else if(c == ')')
             {
-               while(!stack.isEmpty() && stack.peek() != '(')
-               {
-                   result += stack.pop();
-               }
-
-               stack.pop();
-            } // End else if 2
-
-            else
-            {
-                while(!stack.isEmpty() && operator(c) <= operator(stack.peek()))
+                while(!stack.isEmpty() && stack.peek() != '(')
                 {
-                    result += stack.pop();
-                }
+                    result.add(stack.pop() + "");
+                }// End while
+                stack.pop();
+            }// End else if
+            else if(!Character.isDigit(c))// Character is + - * / ^
+            {
+                while(!stack.isEmpty() && priority(c) <= priority(stack.peek()))
+                {
+                    result.add(stack.pop() + "");
+                } // End while
                 stack.push(c);
-            }
-        }
+            }// End Else if
+        }// End For
         while(!stack.isEmpty())
         {
-            if(stack.peek() == '(')
-            {
-                return "No";
-            }
-            result += stack.pop();
-        }
+            result.add(stack.pop() + "");
+        }// End while
         return result;
-    }
+    }// End before
 
+    public static double after(ArrayList<String> afterFix)
+    {
+        Stack<Double> stack = new Stack<>(); // Temp Stack
+        for(int i = 0; i < afterFix.size(); i++)
+        {
+            String c = afterFix.get(i);
+            if(Character.isDigit(c.charAt(0)))
+            {
+                stack.push(Double.parseDouble(c));
+            }// End If
+            else
+            {
+                double num1 = stack.pop();
+                double num2 = stack.pop();
+
+                switch(c)
+                {
+                    case "+":
+                        stack.push(num1 + num2);
+                    break;
+
+                    case "-":
+                        stack.push(num2 - num1);
+                    break;
+
+                    case "*":
+                        stack.push(num1 * num2);
+                    break;
+
+                    case "/":
+                        stack.push(num2 / num1);
+                    break;
+                }// End switch
+            }//End Else
+        }// End for
+        return stack.pop();
+    }// End after
     public static void main(String[] args)
     {
-        Scanner sc = new Scanner(System.in);
-        output = sc.next();
-        System.out.println(position(output));
+        try (Scanner sc = new Scanner(System.in)) {
+            System.out.println("Enter your equation");
+            String input = sc.nextLine();
+            input = input.replace(" ", "");
+            //System.out.print("Equation: " + before(input));
+            ArrayList<String> afterFix = before(input);
+            System.out.println(afterFix);
+            System.out.println(after(afterFix));
+        }
     }
-}
+}// End calculator
